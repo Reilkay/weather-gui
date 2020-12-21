@@ -1,0 +1,6 @@
+[weather-api]
+appid = '12345'
+appsecret = 'abcde'
+
+[citys]
+list = []
