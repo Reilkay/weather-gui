@@ -131,3 +131,4 @@ dmypy.json
 # User configure
 config.toml
 list.py
+test*.py
