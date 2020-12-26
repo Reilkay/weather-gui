@@ -8,7 +8,10 @@ class WeeklyWeather:
             'appid'] + "&appsecret=" + config['appsecret'] + "&city=" + city
 
     def get(self) -> dict:
-        # 发送get请求
-        content = requests.get(self.url)
-        # 获取返回的json数据
-        return content.json()
+        try:
+            # 发送get请求
+            content = requests.get(self.url)
+            # 获取返回的json数据
+            return content.json()
+        except:
+            return None
