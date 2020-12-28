@@ -1,5 +1,6 @@
 import tkinter as tk
 import tkinter.messagebox
+from ui.window_setting import WindowSetting
 from utils.images import Images
 from weather.api_master import ApiMaster
 from utils.config import Config
@@ -29,7 +30,7 @@ class WindowMain(tk.Tk):
         self.__fresh_ui(manual=False)
 
     def __setup_ui(self):
-        self.title = ""
+        self.title("天气")
         # self.configure(bg="white")
         # self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
@@ -62,17 +63,20 @@ class WindowMain(tk.Tk):
         self.__left_icon = Images().get_icon("direction-left", (28, 28))
         left_button = tk.Button(button_frame,
                                 image=self.__left_icon,
-                                borderwidth=0)
+                                borderwidth=0,
+                                command=self.__prev)
         left_button.grid(row=0, column=1)
         self.__right_icon = Images().get_icon("direction-right", (28, 28))
         left_button = tk.Button(button_frame,
                                 image=self.__right_icon,
-                                borderwidth=0)
+                                borderwidth=0,
+                                command=self.__next)
         left_button.grid(row=0, column=2)
         self.__setting_icon = Images().get_icon("adjust", (28, 28))
         setting_button = tk.Button(button_frame,
                                    image=self.__setting_icon,
-                                   borderwidth=0)
+                                   borderwidth=0,
+                                   command=self.__setting)
         setting_button.grid(row=0, column=3)
         # 按钮布局
         button_frame.grid(row=0, column=1, sticky=tk.NE)
@@ -158,6 +162,10 @@ class WindowMain(tk.Tk):
             api.fresh_weather()
             curr = api.get_current_weather()
             week = api.get_weekly_weather()
+            if curr == None or week == None:
+                tkinter.messagebox.showerror(
+                    title='错误：', message='获取当前天气失败，请尝试点击刷新按钮以重新获取天气。')
+                return
             self.__city_text.set(self.__citys[self.__city_show])
             self.__time_text.set(curr["update_time"])
             self.__description_text.set(curr["wea"])
@@ -177,3 +185,18 @@ class WindowMain(tk.Tk):
         self.update()
         if manual:
             tkinter.messagebox.showinfo(title='提示：', message='刷新成功')
+
+    def __prev(self):
+        if self.__city_show > 0:
+            self.__city_show -= 1
+        self.__fresh_ui(manual=False)
+
+    def __next(self):
+        if self.__city_show < len(self.__citys) - 1:
+            self.__city_show += 1
+        self.__fresh_ui(manual=False)
+
+    def __setting(self):
+        setting_dialog = WindowSetting()
+        self.wait_window(setting_dialog)
+        self.__fresh_ui(manual=False)
