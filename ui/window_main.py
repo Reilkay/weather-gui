@@ -4,7 +4,6 @@ from ui.window_setting import WindowSetting
 from utils.images import Images
 from weather.api_master import ApiMaster
 from utils.config import Config
-from PIL import Image, ImageTk
 
 
 class WindowMain(tk.Tk):
@@ -18,7 +17,7 @@ class WindowMain(tk.Tk):
         self.__time_text = tk.StringVar()
         self.__description_text = tk.StringVar()
         self.__temperature_text = tk.StringVar()
-        self.__rain_text = tk.StringVar()
+        self.__aqi_text = tk.StringVar()
         self.__wet_text = tk.StringVar()
         self.__windspeed_text = tk.StringVar()
         self.__main_img_label = tk.Label()
@@ -36,7 +35,8 @@ class WindowMain(tk.Tk):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(3, weight=1)
         # 城市信息Frame
-        city_info_frame = tk.Frame(self, bg='red')
+        city_info_frame = tk.Frame(self)
+        # city_info_frame = tk.Frame(self, bg='red')
         city_label = tk.Label(city_info_frame,
                               textvariable=self.__city_text,
                               font=(None, 20))
@@ -53,7 +53,8 @@ class WindowMain(tk.Tk):
         city_info_frame.grid(row=0, column=0, rowspan=3, sticky=tk.NSEW)
 
         # 按钮Frame
-        button_frame = tk.Frame(self, bg='cyan')
+        button_frame = tk.Frame(self)
+        # button_frame = tk.Frame(self, bg='cyan')
         self.__fresh_icon = Images().get_icon("refresh", (28, 28))
         fresh_button = tk.Button(button_frame,
                                  image=self.__fresh_icon,
@@ -82,7 +83,8 @@ class WindowMain(tk.Tk):
         button_frame.grid(row=0, column=1, sticky=tk.NE)
 
         # 天气信息Frame
-        weather_info_frame = tk.Frame(self, bg='blue')
+        weather_info_frame = tk.Frame(self)
+        # weather_info_frame = tk.Frame(self, bg='blue')
         # 气温Frame
         temperature_frame = tk.Frame(weather_info_frame)
         self.__main_img_label = tk.Label(temperature_frame, image=None)
@@ -101,9 +103,8 @@ class WindowMain(tk.Tk):
 
         # 更多信息Frame
         more_message_frame = tk.Frame(weather_info_frame)
-        rain_label = tk.Label(more_message_frame,
-                              textvariable=self.__rain_text)
-        rain_label.grid(row=0, column=0, sticky=tk.W)
+        aqi_label = tk.Label(more_message_frame, textvariable=self.__aqi_text)
+        aqi_label.grid(row=0, column=0, sticky=tk.W)
         wet_label = tk.Label(more_message_frame, textvariable=self.__wet_text)
         wet_label.grid(row=1, column=0, sticky=tk.W)
         windspeed_label = tk.Label(more_message_frame,
@@ -124,15 +125,17 @@ class WindowMain(tk.Tk):
         daily_weather_frame.grid(row=4, column=0, sticky=tk.S, columnspan=2)
 
         # 天级预报Frame
-        weekly_weather_frame = tk.Frame(self, bg='black')
+        weekly_weather_frame = tk.Frame(self)
+        # weekly_weather_frame = tk.Frame(self, bg='black')
         for i in range(7):
             self.__weekly_imgs_label[i] = tk.Label(weekly_weather_frame,
                                                    image=None,
                                                    height=72)
             self.__weekly_imgs_label[i].grid(row=0, column=1 + i)
         weekly_weather_tems = [
-            tk.Label(weekly_weather_frame, textvariable=self.__weekly_texts[i])
-            for i in range(7)
+            tk.Label(weekly_weather_frame,
+                     textvariable=self.__weekly_texts[i],
+                     width=12) for i in range(7)
         ]
         for i in range(7):
             weekly_weather_tems[i].grid(row=1, column=1 + i, padx=10)
@@ -144,7 +147,7 @@ class WindowMain(tk.Tk):
         self.__time_text.set("————/——/—— ——:——")
         self.__description_text.set("——")
         self.__temperature_text.set("——°C")
-        self.__rain_text.set("降水概率：——%")
+        self.__aqi_text.set("空气质量：——%")
         self.__wet_text.set("湿度：——%")
         self.__windspeed_text.set("风速：——km/s")
         self.__main_img = Images().get_img("wutu", (150, 150))
@@ -157,7 +160,10 @@ class WindowMain(tk.Tk):
         self.update()
 
     def __fresh_ui(self, manual: bool = True):
+        self.__citys = Config().get()['citys']['list']
         if self.__citys:
+            self.__city_text.set(self.__citys[self.__city_show])
+            self.update()
             api = ApiMaster(self.__citys[self.__city_show])
             api.fresh_weather()
             curr = api.get_current_weather()
@@ -166,11 +172,10 @@ class WindowMain(tk.Tk):
                 tkinter.messagebox.showerror(
                     title='错误：', message='获取当前天气失败，请尝试点击刷新按钮以重新获取天气。')
                 return
-            self.__city_text.set(self.__citys[self.__city_show])
             self.__time_text.set(curr["update_time"])
             self.__description_text.set(curr["wea"])
             self.__temperature_text.set("{}°C".format(curr["tem"]))
-            self.__rain_text.set("空气质量：{}".format(curr["air"]))
+            self.__aqi_text.set("空气质量：{}".format(curr["air"]))
             self.__wet_text.set("湿度：{}".format(curr["humidity"]))
             self.__windspeed_text.set("风速：{}".format(curr["win_meter"]))
             self.__main_img = Images().get_img(curr["wea_img"], (150, 150))
@@ -182,7 +187,6 @@ class WindowMain(tk.Tk):
                     image=self.__week_imgs[i])
                 self.__weekly_texts[i].set("{} ~ {}".format(
                     week['data'][i]['tem2'], week['data'][i]['tem1']))
-        self.update()
         if manual:
             tkinter.messagebox.showinfo(title='提示：', message='刷新成功')
 
